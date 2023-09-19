@@ -49,7 +49,7 @@ def submit_form():
 
         for file in uploaded_files:
             # Generate a unique filename
-            unique_filename = str(uuid.uuid4()) + '_' + secure_filename(file.filename)
+            unique_filename = str(uuid.uuid4())[:8]  + '_' + secure_filename(file.filename)
             
             # Upload to S3
             s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
