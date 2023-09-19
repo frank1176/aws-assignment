@@ -1,5 +1,5 @@
 .nav-borderline {
-    border-bottom: 3px solid #D3D3D3;
+    border-bottom: 3px solid darkblue;
 }
 
 .home-header {
@@ -45,13 +45,4 @@
 
 .home-button {
     margin-top: 30px;
-}
-
-.footer-container {
-    border-top: 3px solid #D3D3D3;
-    background-color: #ffffff;
-    padding: 5px 15px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
 }
