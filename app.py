@@ -2,8 +2,9 @@ from flask import Flask, render_template, request,render_template, redirect, url
 from pymysql import connections
 import os
 import boto3
+from werkzeug.utils import secure_filename
 from config import *
-
+import uuid
 app = Flask(__name__,static_folder='static')
 
 bucket = custombucket
@@ -41,17 +42,30 @@ def submit_form():
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
 
-        # Updated SQL statement
-        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance) VALUES (%s, %s, %s)"
+
+         # Store unique filenames
+        unique_file_names = []
+        s3 = boto3.resource('s3')
+
+        for file in uploaded_files:
+            # Generate a unique filename
+            unique_filename = str(uuid.uuid4()) + '_' + secure_filename(file.filename)
+            
+            # Upload to S3
+            s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
+            
+            # Appending unique filename to the list
+            unique_file_names.append(unique_filename)
+
+        # Convert list of filenames to a comma-separated string
+        file_names_string = ",".join(unique_file_names)
+
+        # Modify the insert SQL to include the new column for file names
+        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names) VALUES (%s, %s, %s, %s)"
         
         cursor = db_conn.cursor()
-        
-        if not any(file.filename for file in uploaded_files):
-            return "Please select a file"
-
-        # Process the uploaded files and upload to S3 (this part may be expanded as per your need)
         try:
-            cursor.execute(insert_sql, (company_name, company_address, allowance))
+            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string))
             db_conn.commit()
         finally:
             cursor.close()
