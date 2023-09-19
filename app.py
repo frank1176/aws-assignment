@@ -41,19 +41,22 @@ def submit_form():
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
 
-        # Process the text data as per your needs, for example, store in a database.
-        insert_sql = "INSERT INTO submit_form VALUES (%s, %s, %s)"
+        # Updated SQL statement
+        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance) VALUES (%s, %s, %s)"
+        
         cursor = db_conn.cursor()
-        if uploaded_files.filename == "":
+        
+        if not any(file.filename for file in uploaded_files):
             return "Please select a file"
 
-        # Process the uploaded files and upload to S3
+        # Process the uploaded files and upload to S3 (this part may be expanded as per your need)
         try:
             cursor.execute(insert_sql, (company_name, company_address, allowance))
             db_conn.commit()
+        finally:
+            cursor.close()
 
-        except Exception as e:
-            return str(e)
+        print("submit_form Submmited Successfully")
     
 
     # Render the form page. You can also return a template if you have one.
