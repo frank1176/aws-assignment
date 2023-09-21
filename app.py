@@ -85,6 +85,7 @@ table = 'submit-company'
 def AddCompany():
     return render_template('AddCompany.html')
 
+# In your AddCompany route
 @app.route('/submit-company', methods=['POST'])
 def company():
     try:
@@ -100,9 +101,9 @@ def company():
                 flash('Company Name and Address are required fields.', 'error')
                 return redirect(url_for('AddCompany'))  # Redirect to the company submission form
 
-            # Store unique filenames
-            unique_file_names = []
-            s3 = boto3.resource('s3')
+            # Store unique URLs
+            unique_file_urls = []
+            s3 = boto3.resource('s3')  # Use resource method to create S3 resource
 
             for file in company_logo:
                 if file.filename != '':
@@ -110,35 +111,56 @@ def company():
                     unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
 
                     # Upload to S3
-                    s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
+                    s3.Bucket(custombucket).upload_fileobj(file, unique_filename)  # Use upload_fileobj method
 
-                    # Appending unique filename to the list
-                    unique_file_names.append(unique_filename)
+                    # Generate the full URL and append it to the list
+                    url = f"https://{custombucket}.s3.amazonaws.com/{unique_filename}"
+                    unique_file_urls.append(url)
 
-            # Convert list of filenames to a comma-separated string
-            file_names_string = ",".join(unique_file_names)
+            # Convert list of URLs to a comma-separated string
+            file_urls_string = ",".join(unique_file_urls)
 
-            # Modify the insert SQL to include the new column for file names
-            insert_sql = "INSERT INTO submit_company (company_name, company_address, company_website, company_phone, contact_name, company_logo) VALUES (%s, %s, %s, %s, %s, %s)"
+            # Modify the insert SQL to include the new column for file URLs
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_logo) VALUES (%s, %s, %s, %s, %s, %s)"
 
             cursor = db_conn.cursor()
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, file_names_string))
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, file_urls_string))
+                print("Company information submitted successfully!")
                 db_conn.commit()
-                flash('Company information submitted successfully!', 'success')
+                
             except Exception as e:
                 db_conn.rollback()
-                flash('Error: Could not save company information. Please try again later.', 'error')
+                print("Error: Could not save company information. Please try again later.")
                 print("Database Error:", str(e))
             finally:
                 cursor.close()
     
         return redirect(url_for('AddCompany'))  # Redirect to the company submission form
     except Exception as e:
-        flash('An error occurred. Please try again later.', 'error')
+        print("An error occurred. Please try again later.")
         print("Error:", str(e))
        
+
     return render_template('AddCompany.html')  # Render the company submission form if there is a GET request
+
+
+@app.route('/CompanyList', methods=['GET'])
+def CompanyList():
+    try:
+        # Fetch data from the database (you can replace this with your own query)
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_logo FROM company")
+        companies = cursor.fetchall()
+        print(companies)  # Add this line for debugging
+        cursor.close()
+        return render_template('CompanyList.html', companies=companies)
+    except Exception as e:
+        print("An error occurred while fetching company data.")
+        print("Error:", str(e))
+
+   
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
