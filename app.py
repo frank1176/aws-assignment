@@ -77,6 +77,24 @@ def submit_form():
     # Render the form page. You can also return a template if you have one.
     return render_template('SubmitInternshipForm.html')  # Replace with your template name
 
+@app.route('/', methods=['POST'])
+def create_user():
+    name = request.form['name']
+    password = request.form['password']
+    email = request.form['email']
+    role = request.form['role']
+    
+    # You can now use the 'name', 'password', 'email', and 'role' variables as needed.
+    
+    # For example, you can print them:
+    print(f"Name: {name}")
+    print(f"Password: {password}")
+    print(f"Email: {email}")
+    print(f"Role: {role}")
+    
+    # You can also perform further actions with these values here.
+    
+    return "User created successfully"
 
 table = 'submit-company'
 
@@ -158,9 +176,6 @@ def CompanyList():
     except Exception as e:
         print("An error occurred while fetching company data.")
         print("Error:", str(e))
-
-   
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
