@@ -42,7 +42,7 @@ def submit_form():
         company_address = request.form['company_address']
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
-
+        
 
          # Store unique filenames
         unique_file_names = []
@@ -113,7 +113,9 @@ def company():
             company_website = request.form['company_website']
             company_phone = request.form['company_phone']
             contact_name = request.form['contact_name']
+            company_description = request.form['company_description']
             company_logo = request.files.getlist('company_logo[]')
+            
 
             if not company_name or not company_address:
                 flash('Company Name and Address are required fields.', 'error')
@@ -139,11 +141,11 @@ def company():
             file_urls_string = ",".join(unique_file_urls)
 
             # Modify the insert SQL to include the new column for file URLs
-            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_logo) VALUES (%s, %s, %s, %s, %s, %s)"
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
             cursor = db_conn.cursor()
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, file_urls_string))
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string))
                 print("Company information submitted successfully!")
                 db_conn.commit()
                 
@@ -168,7 +170,7 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_logo FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
