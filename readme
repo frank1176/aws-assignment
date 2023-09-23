@@ -7,7 +7,4 @@ git clone https://github.com/frank1176/aws-assignment.git
 cd aws-assignment
 dnf install python-pip -y
 pip3 install flask pymysql boto3
-python3 app.py
-
-
-
+python3 .\app.py
