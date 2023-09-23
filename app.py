@@ -26,6 +26,10 @@ output = {}
 def SignIn():
     return render_template('SignIn.html')
 
+@app.route('/signin', methods=['GET', 'POST'])
+def signin():
+    return render_template('SignIn.html')
+
 @app.route('/Home', methods=['GET', 'POST'])
 def Home():
     return render_template('Home.html')
@@ -41,6 +45,14 @@ def SubmitForm():
 @app.route('/AddCompany', methods=['GET', 'POST'])
 def AddCompany():
     return render_template('AddCompany.html')
+
+@app.route('/CreateUser', methods=['GET', 'POST'])
+def CreateUser():
+    return render_template('CreateUser.html')
+
+@app.route('/CompanyListApprove', methods=['GET', 'POST'])
+def CompanyListApprove():
+    return render_template('CompanyList.html')
 
 @app.route('/Admin', methods=['GET'])
 def Admin():
