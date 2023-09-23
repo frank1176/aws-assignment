@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITP Online</title>
 
-    <link rel="stylesheet" type="text/css" href="../static/style/createuser.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/createuser.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.css" rel="stylesheet" />
 </head>
 
@@ -28,13 +28,13 @@
         class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0"
         aria-label="Sidebar">
         <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
-            <a href="Admin.html" class="flex items-center pl-2.5 mb-5">
-                <img src="../static/image/logo.png" class="h-6 mr-3 sm:h-7" alt="TARUMT Logo" />
+            <a href="{{ url_for('Admin') }}" class="flex items-center pl-2.5 mb-5">
+                <img src="{{ url_for('static', filename='image/logo.png') }}" class="h-6 mr-3 sm:h-7" alt="TARUMT Logo" />
             <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">ITP Online</span>
             </a>
             <ul class="space-y-2 font-medium">
                 <li>
-                    <a href="Admin.html"
+                    <a href="{{ url_for('Admin') }}"
                         class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -48,7 +48,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="CreateUser.html"
+                    <a href="{{ url_for('CreateUser') }}"
                         class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -62,7 +62,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#"
+                    <a href="{{ url_for('CompanyListApprove') }}"
                         class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -76,7 +76,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="SignIn.html"
+                    <a href="{{ url_for('signin') }}"
                         class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -86,7 +86,7 @@
                             <path
                                 d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
                         </svg>
-                        <span class="ml-3">Sign Out</span>
+                        <span class="ml-3">Logout</span>
                     </a>
                 </li>
             </ul>
