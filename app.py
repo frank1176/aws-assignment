@@ -5,6 +5,7 @@ import boto3
 from werkzeug.utils import secure_filename
 from config import *
 import uuid
+import botocore
 app = Flask(__name__,static_folder='static')
 
 app.secret_key = '/6jGyaxEtAdlmHe+n4Vnc3pBc91UauBts92Z6o/Y'
@@ -21,6 +22,8 @@ db_conn = connections.Connection(
 
 )
 output = {}
+def get_s3_resource():
+    return boto3.resource('s3')
 
 @app.route('/', methods=['GET', 'POST'])
 def SignIn():
@@ -96,38 +99,50 @@ def submit_form():
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
         
+        # Ensure user_id is in the session
+        if 'user_id' not in session:
+            return "Unauthorized", 403
 
-         # Store unique filenames
+        user_id = session['user_id']
+
+        # Store unique filenames
         unique_file_names = []
-        s3 = boto3.resource('s3')
+        
 
         for file in uploaded_files:
-            # Generate a unique filename
-            unique_filename = str(uuid.uuid4())[:8]  + '_' + secure_filename(file.filename)
-            
-            # Upload to S3
+            # TODO: Add file type & size checks here
+            unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
+            s3 = get_s3_resource() 
+            try:
+                # your code to put object in S3
+                s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
+
+            except botocore.exceptions.ClientError as e:
+                if e.response['Error']['Code'] == 'ExpiredToken':
+                    # Handle the expired token: refresh the token and retry the operation
+                    pass
+                else:
+                    # Handle other potential errors
+                    print("Unexpected error: %s" % e)
             s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
-            
-            # Appending unique filename to the list
             unique_file_names.append(unique_filename)
 
-        # Convert list of filenames to a comma-separated string
         file_names_string = ",".join(unique_file_names)
-
-        # Modify the insert SQL to include the new column for file names
-        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names) VALUES (%s, %s, %s, %s)"
+        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id) VALUES (%s, %s, %s, %s, %s)"
         
         cursor = db_conn.cursor()
         try:
-            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string))
+            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id))
             db_conn.commit()
+        except Exception as e:
+            print(f"Error inserting into database: {e}")
+            return "Failed to submit form", 500
         finally:
             cursor.close()
 
-        print("submit_form Submmited Successfully")
+        print("submit_form Submitted Successfully")
     
-    # Render the form page. You can also return a template if you have one.
-    return render_template('SubmitInternshipForm.html')  # Replace with your template name
+    return render_template('SubmitInternshipForm.html')
 
 
 @app.route('/submituser', methods=['POST'])
