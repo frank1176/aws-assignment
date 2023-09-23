@@ -19,12 +19,10 @@ db_conn = connections.Connection(
 
 )
 output = {}
-table = 'submit_form'
-
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    return render_template('Home.html')
+    return render_template('CreateUser.html')
 
 @app.route('/SignIn', methods=['GET', 'POST'])
 def signin():
@@ -77,26 +75,23 @@ def submit_form():
     # Render the form page. You can also return a template if you have one.
     return render_template('SubmitInternshipForm.html')  # Replace with your template name
 
-@app.route('/', methods=['POST'])
+@app.route('/submituser', methods=['POST'])
 def create_user():
     name = request.form['name']
     password = request.form['password']
     email = request.form['email']
     role = request.form['role']
     
-    # You can now use the 'name', 'password', 'email', and 'role' variables as needed.
-    
-    # For example, you can print them:
-    print(f"Name: {name}")
-    print(f"Password: {password}")
-    print(f"Email: {email}")
-    print(f"Role: {role}")
-    
-    # You can also perform further actions with these values here.
-    
-    return "User created successfully"
+    insert_sql = "INSERT INTO user (user_name, user_password, user_email, user_role) VALUES (%s, %s, %s, %s)"
 
-table = 'submit-company'
+    cursor = db_conn.cursor()
+    try:
+        cursor.execute(insert_sql, (name, password, email, role))
+        db_conn.commit()
+    finally:
+        cursor.close()
+    
+    return render_template('CreateUser.html')
 
 
 @app.route('/AddCompany', methods=['GET', 'POST'])
