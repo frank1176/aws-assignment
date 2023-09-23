@@ -22,11 +22,15 @@ output = {}
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    return render_template('CreateUser.html')
+    return render_template('Home.html')
 
 @app.route('/SignIn', methods=['GET', 'POST'])
 def signin():
     return render_template('SignIn.html')
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    return render_template('Admin.html')
 
 @app.route('/SubmitInternshipForm', methods=['GET', 'POST'])
 def SubmitForm():
