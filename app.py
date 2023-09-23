@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request,render_template, redirect, url_for, flash
+from flask import Flask, render_template, request,render_template, redirect, session, url_for, flash
 from pymysql import connections
 import os
 import boto3
@@ -6,6 +6,8 @@ from werkzeug.utils import secure_filename
 from config import *
 import uuid
 app = Flask(__name__,static_folder='static')
+
+app.secret_key = '/6jGyaxEtAdlmHe+n4Vnc3pBc91UauBts92Z6o/Y'
 
 bucket = custombucket
 region = customregion
@@ -21,20 +23,69 @@ db_conn = connections.Connection(
 output = {}
 
 @app.route('/', methods=['GET', 'POST'])
-def home():
-    return render_template('Home.html')
-
-@app.route('/SignIn', methods=['GET', 'POST'])
-def signin():
+def SignIn():
     return render_template('SignIn.html')
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
-    return render_template('Admin.html')
+@app.route('/Home', methods=['GET', 'POST'])
+def Home():
+    return render_template('Home.html')
+
+@app.route('/About', methods=['GET', 'POST'])
+def About():
+    return render_template('About.html')
 
 @app.route('/SubmitInternshipForm', methods=['GET', 'POST'])
 def SubmitForm():
     return render_template('SubmitInternshipForm.html')
+
+@app.route('/AddCompany', methods=['GET', 'POST'])
+def AddCompany():
+    return render_template('AddCompany.html')
+
+@app.route('/Admin', methods=['GET'])
+def Admin():
+    try:
+        # Fetch data from the database (you can replace this with your own query)
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT user_id, user_name, user_email, user_role FROM user")
+        users = cursor.fetchall()
+        print(users)  # Add this line for debugging
+        cursor.close()
+        return render_template('Admin.html', users=users)
+    except Exception as e:
+        print("An error occurred while fetching company data.")
+        print("Error:", str(e))
+
+@app.route('/usersignin', methods=['POST'])
+def userSignIn():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        # Check if the user exists in the user table
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT user_id, user_name, user_email, user_role FROM user WHERE user_email = %s AND user_password = %s", (email, password))
+        user_data = cursor.fetchone()
+        cursor.close()
+
+        if user_data:
+            # User exists, store user data in session
+            session['user_id'] = user_data[0]
+            session['user_name'] = user_data[1]
+            session['user_email'] = user_data[2]
+            session['user_role'] = user_data[3]
+
+            # Redirect based on user role
+            if session['user_role'] == 'Admin':
+                print("admin")
+                return redirect(url_for('Admin'))
+            else:
+                print("user")
+                return redirect(url_for('Home'))
+        else:
+            flash('Invalid credentials. Please try again.', 'error')
+
+    return redirect(url_for('SignIn.html'))
 
 
 @app.route('/submitform', methods=['POST'])
@@ -75,9 +126,9 @@ def submit_form():
 
         print("submit_form Submmited Successfully")
     
-
     # Render the form page. You can also return a template if you have one.
     return render_template('SubmitInternshipForm.html')  # Replace with your template name
+
 
 @app.route('/submituser', methods=['POST'])
 def create_user():
@@ -97,11 +148,6 @@ def create_user():
     
     return render_template('CreateUser.html')
 
-
-@app.route('/AddCompany', methods=['GET', 'POST'])
-def AddCompany():
-    return render_template('AddCompany.html')
-
 # In your AddCompany route
 @app.route('/submit-company', methods=['POST'])
 def company():
@@ -112,9 +158,11 @@ def company():
             company_website = request.form['company_website']
             company_phone = request.form['company_phone']
             contact_name = request.form['contact_name']
-            company_description = request.form['company_description']
             company_logo = request.files.getlist('company_logo[]')
             
+            
+
+
 
             if not company_name or not company_address:
                 flash('Company Name and Address are required fields.', 'error')
@@ -140,11 +188,11 @@ def company():
             file_urls_string = ",".join(unique_file_urls)
 
             # Modify the insert SQL to include the new column for file URLs
-            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_logo) VALUES (%s, %s, %s, %s, %s, %s)"
 
             cursor = db_conn.cursor()
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string))
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, file_urls_string))
                 print("Company information submitted successfully!")
                 db_conn.commit()
                 
@@ -169,7 +217,7 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_logo FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
@@ -177,6 +225,7 @@ def CompanyList():
     except Exception as e:
         print("An error occurred while fetching company data.")
         print("Error:", str(e))
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

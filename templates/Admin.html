@@ -30,7 +30,7 @@
         <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
             <a href="Admin.html" class="flex items-center pl-2.5 mb-5">
                 <img src="../static/image/logo.png" class="h-6 mr-3 sm:h-7" alt="TARUMT Logo" />
-            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">ITP Online</span>
+                <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">ITP Online</span>
             </a>
             <ul class="space-y-2 font-medium">
                 <li>
@@ -93,4 +93,27 @@
         </div>
     </aside>
 
+    <div class="p-4 sm:ml-64">
+        <div class="relative overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">No</th>
+                        <th scope="col" class="px-6 py-3">Username</th>
+                        <th scope="col" class="px-6 py-3">Email</th>
+                        <th scope="col" class="px-6 py-3">Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{user[0] }}</th>
+                        <td class="px-6 py-4">{{ user[1] }}</td>
+                        <td class="px-6 py-4">{{ user[2] }}</td>
+                        <td class="px-6 py-4">{{ user[3] }}</td>
+                    </tr>
+                    {% endfor %}
+        </div>
+    </div>
 </body>
