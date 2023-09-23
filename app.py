@@ -169,7 +169,7 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
