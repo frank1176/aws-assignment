@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Company List Approve</title>
+    <title>Internship List</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.css" rel="stylesheet" />
     <style>
@@ -43,7 +43,7 @@
             </a>
             <ul class="space-y-2 font-medium">
                 <li>
-                    <a href="{{ url_for('Admin') }}"
+                    <a href="{{ url_for('Supervisor') }}"
                         class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -57,35 +57,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url_for('CreateUser') }}"
-                        class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 22 21">
-                            <path
-                                d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z" />
-                            <path
-                                d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
-                        </svg>
-                        <span class="ml-3">Create User</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('CompanyList') }}"
-                        class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                            aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                            viewBox="0 0 22 21">
-                            <path
-                                d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z" />
-                            <path
-                                d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
-                        </svg>
-                        <span class="ml-3">Company Application</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('show_internship_list') }}"
+                    <a href="{{ url_for('supervisor_internship_list') }}"
                         class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
                             aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -119,7 +91,7 @@
     <div class="p-4 sm:ml-64">
         <!-- Main content with responsive classes -->
 
-        <h1 class="text-white text-4xl text-center py-8">Company List Approval</h1>
+        <h1 class="text-white text-4xl text-center py-8">Internship List</h1>
         <div class="mask-custom flex items-center h-full">
             <div class="container mx-auto">
                 <div class="sm:flex justify-center"> <!-- Responsive class for small screens -->
@@ -132,37 +104,28 @@
                                         <tr>
                                             <th class="px-6 py-3 bg-gray-100">Company Name</th>
                                             <th class="px-6 py-3 bg-gray-100">Company Address</th>
-                                            <th class="px-6 py-3 bg-gray-100">Company Website</th>
-                                            <th class="px-6 py-3 bg-gray-100">Company Phone</th>
-                                            <th class="px-6 py-3 bg-gray-100">Contact Name</th>
-                                            <th class="px-6 py-3 bg-gray-100">Company Description</th>
+                                            <th class="px-6 py-3 bg-gray-100">Allowance</th>
                                             <th class="px-6 py-3 bg-gray-100">Status</th>
-                                            <th class="px-6 py-3 bg-gray-100">Company Logo</th>
                                             <th class="px-6 py-3 bg-gray-100">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for company in companies %}
+                                        {% for internship in internships %}
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[0] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[1] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[2] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[3] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[4] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[5] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ company[6] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ internship[0] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ internship[1] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ internship[2] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ internship[3] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">{{ internship[6] }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <img src="{{ company[7] }}" alt="Company Logo" width="100" height="100">
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <form action="/approval" method="post">
-                                                    <input type="hidden" name="company_id" value="{{ company[8] }}">
-                                                    <input type="hidden" name="company_status" value="{{ company[6] }}">
+                                                <form action="/internshipapproval" method="post">
+                                                    <input type="hidden" name="submit_form_id" value="{{ internship[0] }}">
+                                                    <input type="hidden" name="status" value="{{ internship[6] }}">
                                                     <button
                                                         class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded" 
                                                         type="submit" name="action" value="approve">
                                                         Approve
-                                                        <input type="hidden" name="company_id" value="{{ company[8] }}">
+                                                        <input type="hidden" name="submit_form_id" value="{{ internship[0] }}">
                                                     </button>
                                                     <button
                                                         class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded" 
