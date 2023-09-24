@@ -104,7 +104,12 @@
                                         <td class="px-6 py-4 whitespace-nowrap">{{ company[2] }}</td> <!-- company_address -->
                                         <td class="px-6 py-4 whitespace-nowrap">{{ company[3] }}</td> <!-- allowance -->
                                         <td class="px-6 py-4 whitespace-nowrap" > {{ company[5] }}</td> <!-- status -->
-                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[4] }}</td> <!-- file_names -->
+                                        <td class="px-6 py-4 whitespace-nowrap"> 
+                                            {% for url in company[9].split(',') %}
+                                                {% set file_name = url.split('/')[-1] %}
+                                                <a href="{{ url.strip() }}" download target="_blank" style="text-decoration: underline; color: blue;">{{ file_name }}</a><br>
+                                            {% endfor %}
+                                        </td> <!-- file_names -->
                                     </tr>
                                     {% endfor %}
                                 </tbody>

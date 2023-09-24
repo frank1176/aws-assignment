@@ -443,8 +443,10 @@ def viewstatus():
         # Fetch data from the database
         cursor = db_conn.cursor()
         # Using parameterized query for safety against SQL injection
-        cursor.execute("SELECT * FROM submit_form WHERE user_id = %s", (user_id,))
+        # file_url FROM company INNER JOIN File ON company.file_id = File.file_id
+        cursor.execute("SELECT * FROM submit_form INNER JOIN File ON submit_form.file_id = File.file_id WHERE user_id = %s", (user_id,))
         companies = cursor.fetchall()
+        print(companies)
         cursor.close()
 
     except Exception as e:
