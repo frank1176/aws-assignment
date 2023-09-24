@@ -306,7 +306,7 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_id FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_id, file_url FROM company INNER JOIN File ON company.file_id = File.file_id")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
@@ -350,7 +350,7 @@ def show_internship_list():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT * FROM submit_form")
+        cursor.execute("SELECT submit_form_id, company_name, company_address, allowance, user_id, status, supervisor_id, file_url FROM submit_form INNER JOIN File ON submit_form.file_id = File.file_id")
         internships = cursor.fetchall()
         print(internships)  # Add this line for debugging
         cursor.close()
@@ -418,9 +418,10 @@ def CompanyListView():
     try:
         # Fetch data from the database
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_id FROM company WHERE company_status = 'approved'")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_id, file_url FROM company INNER JOIN File ON company.file_id = File.file_id WHERE company_status = 'approved'")
         companies = cursor.fetchall()
         cursor.close()
+        print(companies)
        
     except Exception as e:
         print("An error occurred while fetching company data.")
