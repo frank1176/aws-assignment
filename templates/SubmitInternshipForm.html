@@ -86,8 +86,16 @@
                 <input type="file" name="files[]" id="files" multiple class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="allowance">Supervisor Name</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="supervisor_name" type="text" required>
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="supervisor">Select Supervisor</label>
+                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="supervisor" required>
+                    <option value="" disabled selected>Select a Supervisor</option>
+                    <!-- Iterate through each supervisor and create an option element -->
+                    {% for supervisor in supervisors %}
+                       
+                            <option value="{{ supervisor[0] }}" name="supervisor_id">{{ supervisor[1] }}</option>
+                       
+                    {% endfor %}
+                </select>
             </div>
             <!-- Submit button -->
             <div class="mb-4">

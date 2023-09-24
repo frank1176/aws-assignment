@@ -42,10 +42,6 @@ def Home():
 def About():
     return render_template('About.html')
 
-@app.route('/SubmitInternshipForm', methods=['GET', 'POST'])
-def SubmitForm():
-    return render_template('SubmitInternshipForm.html')
-
 @app.route('/AddCompany', methods=['GET', 'POST'])
 def AddCompany():
     return render_template('AddCompany.html')
@@ -107,6 +103,26 @@ def userSignIn():
                 flash('Email or password is invalid, please try again.', 'error')
                 return redirect(url_for('signin'))
 
+@app.route('/SubmitInternshipForm', methods=['GET'])
+def SubmitForm():
+    try:
+        # Connect to your database (replace 'your_database.db' with your actual database file)
+        cursor = db_conn.cursor()
+
+        # Assuming you have a table named 'supervisors' with columns 'id' and 'name'
+        cursor.execute('SELECT user_id, user_name, user_role FROM user WHERE user_role = "Supervisor"')
+        supervisors = cursor.fetchall()
+        print(supervisors)  # Add this line for debugging
+
+        # Close the database connection
+        cursor.close()
+    except Exception as e:
+        print("An error occurred while fetching supervisor data.")
+        print("Error:", str(e))
+        supervisors = []  # Empty list in case of an error
+
+    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
+
 
 @app.route('/submitform', methods=['POST'])
 def submit_form():
@@ -115,7 +131,8 @@ def submit_form():
         company_address = request.form['company_address']
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
-        supervisor_name=request.form['supervisor_name']
+        supervisor_id = request.form.get('supervisor')
+        print(supervisor_id)
         # Ensure user_id is in the session
         if 'user_id' not in session:
             return "Unauthorized", 403
@@ -146,11 +163,11 @@ def submit_form():
                     break
 
         file_names_string = ",".join(unique_file_names)
-        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id,supervisor_name) VALUES (%s, %s, %s, %s, %s,%s)"
+        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id, supervisor_id) VALUES (%s, %s, %s, %s, %s,%s)"
         
         cursor = db_conn.cursor()
         try:
-            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id,supervisor_name))
+            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id, supervisor_id))
             db_conn.commit()
         except Exception as e:
             print(f"Error inserting into database: {e}")
@@ -158,9 +175,13 @@ def submit_form():
         finally:
             cursor.close()
 
+         # After updating the database, fetch the updated data
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT * FROM user")
+        supervisors = cursor.fetchall()
         print("submit_form Submitted Successfully")
     
-    return render_template('SubmitInternshipForm.html')
+    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
 
 @app.route('/submituser', methods=['POST'])
 def create_user():
