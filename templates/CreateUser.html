@@ -29,8 +29,9 @@
         aria-label="Sidebar">
         <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
             <a href="{{ url_for('Admin') }}" class="flex items-center pl-2.5 mb-5">
-                <img src="{{ url_for('static', filename='image/logo.png') }}" class="h-6 mr-3 sm:h-7" alt="TARUMT Logo" />
-            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">ITP Online</span>
+                <img src="{{ url_for('static', filename='image/logo.png') }}" class="h-6 mr-3 sm:h-7"
+                    alt="TARUMT Logo" />
+                <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">ITP Online</span>
             </a>
             <ul class="space-y-2 font-medium">
                 <li>
@@ -95,33 +96,54 @@
 
     <div class="p-4 sm:ml-64">
         <div class="form-container">
-            <h2>Registration Form</h2>
+            <h2 class="form-title text-4xl font-bold dark:text-white">User Registration Form</h2>
             <form action="/submituser" method="POST">
                 <div class="form-group">
-                    <label for="name">Name</label>
+                    <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
                     <input type="text" id="name" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password"
+                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
                     <input type="text" id="password" name="password" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email"
+                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
                     <input type="email" id="email" name="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="role">Select Role</label>
+                    <label for="role" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select
+                        Role</label>
                     <select id="role" name="role">
                         <option value="Student">Student</option>
                         <option value="Supervisor">Supervisor</option>
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <div>
+                    <ul>
+                        {% for message in messages %}
+
+                        <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400"
+                            role="alert">
+                            <span class="font-medium">{{ message }}</span>
+                        </div>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% endwith %}
+
                 <div class="form-group">
-                    <button type="submit">Create</button>
+                    <button type="submit"
+                        class="submit-button text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Register</button>
                 </div>
             </form>
         </div>
-     </div>
-      
+    </div>
+
 </body>
