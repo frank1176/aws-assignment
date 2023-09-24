@@ -108,7 +108,12 @@
                                             <td class="px-6 py-4 whitespace-nowrap">{{ internship[2] }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ internship[3] }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ internship[5] }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">{{ internship[7] }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% for url in internship[7].split(',') %}
+                                                {% set file_name = url.split('/')[-1] %}
+                                                <a href="{{ url.strip() }}" download target="_blank" style="text-decoration: underline; color: blue;">{{ file_name }}</a><br>
+                                            {% endfor %}
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <form action="/internshipapproval" method="post">
                                                     <input type="hidden" name="submit_form_id" value="{{ internship[0] }}">
