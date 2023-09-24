@@ -9,7 +9,7 @@ import botocore
 app = Flask(__name__,static_folder='static')
 app.secret_key = os.urandom(24)
 
-# app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
+app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
 
 bucket = custombucket
 region = customregion
@@ -274,12 +274,19 @@ def CompanyList():
 def approval():
     if request.method == 'POST':
         company_id = request.form.get('company_id')
-
-        # Set company_status to "approve"
-        company_status = "approve"
+        action = request.form.get('action')
 
         try:
             cursor = db_conn.cursor()
+
+            if action == 'approve':
+                company_status = 'approved'
+            elif action == 'reject':
+                company_status = 'rejected'
+            else:
+                # Handle invalid action value here
+                pass
+
             cursor.execute("UPDATE company SET company_status = %s WHERE company_id = %s", (company_status, company_id))
             db_conn.commit()
             cursor.close()
@@ -291,7 +298,58 @@ def approval():
         return redirect(url_for('CompanyList'))
     return render_template('CompanyList.html')
 
-    
+@app.route('/InternshipList', methods=['GET'])
+def show_internship_list():
+    try:
+        # Fetch data from the database (you can replace this with your own query)
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT * FROM submit_form")
+        internships = cursor.fetchall()
+        print(internships)  # Add this line for debugging
+        cursor.close()
+       
+    except Exception as e:
+        print("An error occurred while fetching company data.")
+        print("Error:", str(e))
+
+    return render_template('InternshipList.html', internships=internships)
+
+@app.route('/internshipapproval', methods=['POST'])
+def internshipapproval():
+    if request.method == 'POST':
+        submit_form_id = request.form.get('submit_form_id')
+        action = request.form.get('action')
+
+        print(submit_form_id)
+        print(action)
+        try:
+            cursor = db_conn.cursor()
+
+            if action == 'approve':
+                status = 'approved'
+            elif action == 'reject':
+                status = 'rejected'
+            else:
+                # Handle invalid action value here
+                pass
+
+            cursor.execute("UPDATE submit_form SET status = %s WHERE submit_form_id = %s", (status, submit_form_id))
+            db_conn.commit()
+            cursor.close()
+        except Exception as e:
+            # Handle any database errors here, e.g., print the error message
+            print(f"Database error: {str(e)}")
+            db_conn.rollback()  # Rollback the transaction in case of an error
+
+        # After updating the database, fetch the updated data
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT * FROM submit_form")
+        internships = cursor.fetchall()
+        cursor.close()
+
+        # Pass the updated data to the template
+        return render_template('InternshipList.html', internships=internships)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
