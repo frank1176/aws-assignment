@@ -108,7 +108,7 @@ def submit_form():
         company_address = request.form['company_address']
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
-        
+        supervisor_name=request.form['supervisor_name']
         # Ensure user_id is in the session
         if 'user_id' not in session:
             return "Unauthorized", 403
@@ -139,11 +139,11 @@ def submit_form():
                     break
 
         file_names_string = ",".join(unique_file_names)
-        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id) VALUES (%s, %s, %s, %s, %s)"
+        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id,supervisor_name) VALUES (%s, %s, %s, %s, %s,%s)"
         
         cursor = db_conn.cursor()
         try:
-            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id))
+            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id,supervisor_name))
             db_conn.commit()
         except Exception as e:
             print(f"Error inserting into database: {e}")
@@ -365,6 +365,32 @@ def CompanyListView():
         companies = []  # Set companies to an empty list in case of an error
 
     return render_template('CompanyListView.html', companies=companies)
+
+@app.route('/viewstatus', methods=['GET', 'POST'])
+def viewstatus():
+    # Ensure user_id is available in the session
+    if 'user_id' not in session:
+        # Redirect to login page (assuming it's named 'login')
+        return redirect(url_for('SignIn'))
+
+    user_id = session['user_id']
+
+    try:
+        # Fetch data from the database
+        cursor = db_conn.cursor()
+        # Using parameterized query for safety against SQL injection
+        cursor.execute("SELECT * FROM submit_form WHERE user_id = %s", (user_id,))
+        companies = cursor.fetchall()
+        cursor.close()
+
+    except Exception as e:
+        print("An error occurred while fetching company data.")
+        print("Error:", str(e))
+        companies = []  # Set companies to an empty list in case of an error
+        # Optionally, you can add a user-friendly error message
+        flash("There was an issue retrieving your data. Please try again later.", "error")
+
+    return render_template('status.html', companies=companies)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

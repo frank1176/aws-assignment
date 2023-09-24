@@ -2,12 +2,21 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITP Online</title>
+    <title>Company List</title>
 
-    <link rel="stylesheet" type="text/css" href="../static/style/home.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.css" rel="stylesheet" />
+    <style>
+        .card {
+            border-radius: .5rem;
+        }
+
+        .mask-custom {
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            background-clip: padding-box;
+            box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 p-10">
@@ -66,37 +75,51 @@
         </nav>
     </header>
 
-   <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-8">
-        <form action="/submitform" method="post" enctype="multipart/form-data">
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="company_name">Company Name</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="company_name" type="text" required>
+  
+<!-- Main content with responsive classes -->
+<h1 class="text-black text-4xl text-center py-8">Application List</h1>
+<div class="mask-custom flex items-center h-full">
+    <div class="container mx-auto">
+        <div class="sm:flex justify-center"> <!-- Responsive class for small screens -->
+            <div class="w-full sm:w-3/4 lg:w-2/3">
+                <div class="bg-white shadow-md p-8 w-full">
+                    <div class="overflow-x-auto">
+                        <!-- Wrap the table with a responsive div -->
+                        <div class="min-w-full overflow-x-auto">
+                            <table class="min-w-full border border-gray-200 w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 bg-gray-100">Company Name</th>
+                                        <th class="px-6 py-3 bg-gray-100">Company Address</th>
+                                        <th class="px-6 py-3 bg-gray-100">Allowance</th>
+                                        <th class="px-6 py-3 bg-gray-100">Status</th>
+                                        <th class="px-6 py-3 bg-gray-100">File Names</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for company in companies %}
+                                    
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[1] }}</td> <!-- company_name -->
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[2] }}</td> <!-- company_address -->
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[3] }}</td> <!-- allowance -->
+                                        <td class="px-6 py-4 whitespace-nowrap" > {{ company[6] }}</td> <!-- status -->
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[4] }}</td> <!-- file_names -->
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- End of responsive div -->
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="company_address">company_address</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="company_address" type="text" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="allowance">Allowance</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="allowance" type="number" required>
-            </div>
-          
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="files">Upload Files</label>
-                <input type="file" name="files[]" id="files" multiple class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="allowance">Supervisor Name</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="supervisor_name" type="text" required>
-            </div>
-            <!-- Submit button -->
-            <div class="mb-4">
-                <input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" value="Submit Form">
-            </div>
-        </form>
+        </div>
     </div>
+</div>
 
 
+  
 </body>
 
 </html>
