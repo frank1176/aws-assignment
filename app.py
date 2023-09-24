@@ -51,11 +51,6 @@ def AddCompany():
 def CreateUser():
     return render_template('CreateUser.html')
 
-@app.route('/Supervisor', methods=['GET', 'POST'])
-def Supervisor():
-    return render_template('Supervisor.html')
-
-
 
 @app.route('/Admin', methods=['GET'])
 def Admin():
@@ -96,7 +91,7 @@ def userSignIn():
                 return redirect(url_for('Admin'))
             elif session['user_role'] == 'Supervisor':
                 print("supervisor")
-                return redirect(url_for('Supervisor'))
+                return redirect(url_for('supervisor_internship_list'))
             elif session['user_role'] == 'Student':
                 print("user")
                 return redirect(url_for('Home'))    
@@ -345,37 +340,37 @@ def approval():
         return redirect(url_for('CompanyList'))
     return render_template('CompanyList.html')
 
-@app.route('/InternshipList', methods=['GET'])
-def show_internship_list():
-    try:
-        # Fetch data from the database (you can replace this with your own query)
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT submit_form_id, company_name, company_address, allowance, user_id, status, supervisor_id, file_url FROM submit_form INNER JOIN File ON submit_form.file_id = File.file_id")
-        internships = cursor.fetchall()
-        print(internships)  # Add this line for debugging
-        cursor.close()
-       
-    except Exception as e:
-        print("An error occurred while fetching company data.")
-        print("Error:", str(e))
-
-    return render_template('InternshipList.html', internships=internships)
-
 @app.route('/SupervisorInternshipList', methods=['GET'])
 def supervisor_internship_list():
     try:
-        # Fetch data from the database (you can replace this with your own query)
+        # Get the user ID from the session
+        user_id = session.get('user_id')
+        
+        if user_id is None:
+            flash('User ID not found in session. Please log in.', 'error')
+            return redirect('/login')  # Redirect to the login page if user ID is missing
+
         cursor = db_conn.cursor()
-        cursor.execute("SELECT * FROM submit_form")
+        query = """
+        SELECT submit_form.submit_form_id, company_name, company_address, allowance, submit_form.user_id, status, supervisor.supervisor_id, file_url
+        FROM submit_form
+        INNER JOIN File ON submit_form.file_id = File.file_id
+        INNER JOIN supervisor ON submit_form.supervisor_id = supervisor.supervisor_id
+        WHERE supervisor.user_id = %s
+        """
+        cursor.execute(query, (user_id,))
         internships = cursor.fetchall()
-        print(internships)  # Add this line for debugging
         cursor.close()
-       
+        print(internships)
+
     except Exception as e:
-        print("An error occurred while fetching company data.")
+        print("An error occurred while fetching internship data.")
         print("Error:", str(e))
+        flash('An error occurred while fetching internship data.', 'error')
+        internships = []  # Set internships to an empty list in case of an error
 
     return render_template('SupervisorInternshipList.html', internships=internships)
+
 
 @app.route('/internshipapproval', methods=['POST'])
 def internshipapproval():
@@ -405,13 +400,21 @@ def internshipapproval():
             db_conn.rollback()  # Rollback the transaction in case of an error
 
         # After updating the database, fetch the updated data
+        user_id = session.get('user_id')
         cursor = db_conn.cursor()
-        cursor.execute("SELECT * FROM submit_form")
+        query = """
+        SELECT submit_form.submit_form_id, company_name, company_address, allowance, submit_form.user_id, status, supervisor.supervisor_id, file_url
+        FROM submit_form
+        INNER JOIN File ON submit_form.file_id = File.file_id
+        INNER JOIN supervisor ON submit_form.supervisor_id = supervisor.supervisor_id
+        WHERE supervisor.user_id = %s
+        """
+        cursor.execute(query, (user_id))
         internships = cursor.fetchall()
         cursor.close()
 
         # Pass the updated data to the template
-        return render_template('InternshipList.html', internships=internships)
+        return render_template('SupervisorInternshipList.html', internships=internships)
 
 @app.route('/CompanyListView', methods=['GET', 'POST'])
 def CompanyListView():
