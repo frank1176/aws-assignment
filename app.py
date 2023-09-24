@@ -94,9 +94,8 @@ def userSignIn():
                 print("user")
                 return redirect(url_for('Home'))
         else:
-            flash('Invalid credentials. Please try again.', 'error')
-
-    return redirect(url_for('SignIn.html'))
+            flash('Email or password is invalid, please try again.', 'error')
+            return redirect(url_for('signin'))
 
 
 @app.route('/submitform', methods=['POST'])
@@ -153,8 +152,6 @@ def submit_form():
     
     return render_template('SubmitInternshipForm.html')
 
-
-
 @app.route('/submituser', methods=['POST'])
 def create_user():
     name = request.form['name']
@@ -162,15 +159,28 @@ def create_user():
     email = request.form['email']
     role = request.form['role']
     
-    insert_sql = "INSERT INTO user (user_name, user_password, user_email, user_role) VALUES (%s, %s, %s, %s)"
-
+    # Check if the email already exists in the database
     cursor = db_conn.cursor()
-    try:
-        cursor.execute(insert_sql, (name, password, email, role))
-        db_conn.commit()
-    finally:
-        cursor.close()
+    cursor.execute("SELECT COUNT(*) FROM user WHERE user_email = %s", (email,))
+    email_exists = cursor.fetchone()[0]
+    cursor.close()
     
+    if email_exists:
+        flash('Email already exists, please use another email.', 'error')
+    else:
+        # Email doesn't exist, insert the new user
+        insert_sql = "INSERT INTO user (user_name, user_password, user_email, user_role) VALUES (%s, %s, %s, %s)"
+        cursor = db_conn.cursor()
+        try:
+            cursor.execute(insert_sql, (name, password, email, role))
+            db_conn.commit()
+            flash('User successfully created.', 'success')
+        except Exception as e:
+            db_conn.rollback()
+            flash(f'Error creating user: {str(e)}', 'error')
+        finally:
+            cursor.close()
+
     return render_template('CreateUser.html')
 
 
@@ -192,7 +202,6 @@ def company():
             contact_name = request.form['contact_name']
             company_description = request.form['company_description']
             company_logo = request.files.getlist('company_logo[]')
-            
 
             if not company_name or not company_address:
                 flash('Company Name and Address are required fields.', 'error')
