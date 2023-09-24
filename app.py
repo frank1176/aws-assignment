@@ -8,7 +8,7 @@ import uuid
 import botocore
 app = Flask(__name__,static_folder='static')
 
-app.secret_key = '/6jGyaxEtAdlmHe+n4Vnc3pBc91UauBts92Z6o/Y'
+# app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
 
 bucket = custombucket
 region = customregion
@@ -115,25 +115,26 @@ def submit_form():
 
         # Store unique filenames
         unique_file_names = []
-        
 
+        s3 = get_s3_resource() 
+        
         for file in uploaded_files:
             # TODO: Add file type & size checks here
             unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
-            s3 = get_s3_resource() 
             try:
-                # your code to put object in S3
+                # Put object in S3
                 s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
-
+                unique_file_names.append(unique_filename)
             except botocore.exceptions.ClientError as e:
                 if e.response['Error']['Code'] == 'ExpiredToken':
                     # Handle the expired token: refresh the token and retry the operation
-                    pass
+                    # For now, just print an error and break out of the loop
+                    print("Token expired, please refresh the token and try again!")
+                    break
                 else:
                     # Handle other potential errors
-                    print("Unexpected error: %s" % e)
-            s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
-            unique_file_names.append(unique_filename)
+                    print(f"Unexpected error during S3 put operation: {e}")
+                    break
 
         file_names_string = ",".join(unique_file_names)
         insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id) VALUES (%s, %s, %s, %s, %s)"
@@ -151,6 +152,7 @@ def submit_form():
         print("submit_form Submitted Successfully")
     
     return render_template('SubmitInternshipForm.html')
+
 
 
 @app.route('/submituser', methods=['POST'])
