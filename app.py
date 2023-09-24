@@ -245,7 +245,7 @@ def company():
     try:
         if request.method == 'POST':
 
-              # Ensure user_id is in the session
+            # Ensure user_id is in the session
             if 'user_id' not in session:
                 return "Unauthorized", 403
 
@@ -256,54 +256,49 @@ def company():
             company_phone = request.form['company_phone']
             contact_name = request.form['contact_name']
             company_description = request.form['company_description']
-            company_logo = request.files.getlist('company_logo[]')
+            company_logo_files = request.files.getlist('company_logo[]')
 
             if not company_name or not company_address:
                 flash('Company Name and Address are required fields.', 'error')
-                return redirect(url_for('AddCompany'))  # Redirect to the company submission form
+                return redirect(url_for('AddCompany'))
 
-            # Store unique URLs
-            unique_file_urls = []
-            s3 = boto3.resource('s3')  # Use resource method to create S3 resource
-
-            for file in company_logo:
-                if file.filename != '':
-                    # Generate a unique filename
-                    unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
-
-                    # Upload to S3
-                    s3.Bucket(custombucket).upload_fileobj(file, unique_filename)  # Use upload_fileobj method
-
-                    # Generate the full URL and append it to the list
-                    url = f"https://{custombucket}.s3.amazonaws.com/{unique_filename}"
-                    unique_file_urls.append(url)
-
-            # Convert list of URLs to a comma-separated string
-            file_urls_string = ",".join(unique_file_urls)
-
-            # Modify the insert SQL to include the new column for file URLs
-            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-
+            s3 = boto3.resource('s3')
             cursor = db_conn.cursor()
+
+            # Default value for file_id. Update it for each file you insert.
+            file_id = None
+
+            for file in company_logo_files:
+                if file.filename != '':
+                    unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
+                    s3.Bucket(custombucket).upload_fileobj(file, unique_filename)
+                    url = f"https://{custombucket}.s3.amazonaws.com/{unique_filename}"
+                    
+                    # Insert into File table and get the last inserted id
+                    cursor.execute("INSERT INTO File (file_url, file_type) VALUES (%s, %s)", (url, file.content_type))
+                    db_conn.commit()
+                    file_id = cursor.lastrowid  # Update the file_id
+
+            # Now, insert into the company table using the last file_id
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, file_id, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string, user_id))
-                print("Company information submitted successfully!")
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_id, user_id))
                 db_conn.commit()
-                
+                print("Company information submitted successfully!")
             except Exception as e:
                 db_conn.rollback()
                 print("Error: Could not save company information. Please try again later.")
                 print("Database Error:", str(e))
             finally:
                 cursor.close()
-    
-        return redirect(url_for('AddCompany'))  # Redirect to the company submission form
+
+            return redirect(url_for('AddCompany'))
     except Exception as e:
         print("An error occurred. Please try again later.")
         print("Error:", str(e))
-       
 
-    return render_template('AddCompany.html')  # Render the company submission form if there is a GET request
+    return render_template('AddCompany.html')
+
 
 
 @app.route('/CompanyList', methods=['GET'])
@@ -311,7 +306,7 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo, company_id FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_id FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
@@ -423,7 +418,7 @@ def CompanyListView():
     try:
         # Fetch data from the database
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo, company_id FROM company WHERE company_status = 'approved'")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_id FROM company WHERE company_status = 'approved'")
         companies = cursor.fetchall()
         cursor.close()
        
