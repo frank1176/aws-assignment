@@ -111,56 +111,72 @@ def userSignIn():
 @app.route('/submitform', methods=['POST'])
 def submit_form():
     if request.method == 'POST':
+        # Fetching form values
         company_name = request.form['company_name']
         company_address = request.form['company_address']
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
-        supervisor_name=request.form['supervisor_name']
+        supervisor_id = request.form.get('supervisor')
+
         # Ensure user_id is in the session
         if 'user_id' not in session:
             return "Unauthorized", 403
 
         user_id = session['user_id']
 
-        # Store unique filenames
-        unique_file_names = []
+        s3 = get_s3_resource()
 
-        s3 = get_s3_resource() 
-        
+        # Create a cursor to interact with the DB
+        cursor = db_conn.cursor()
+        file_id = None
+        files_url=[]
         for file in uploaded_files:
-            # TODO: Add file type & size checks here
+            # Uploading file to S3
             unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
             try:
                 # Put object in S3
                 s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
-                unique_file_names.append(unique_filename)
             except botocore.exceptions.ClientError as e:
-                if e.response['Error']['Code'] == 'ExpiredToken':
-                    # Handle the expired token: refresh the token and retry the operation
-                    # For now, just print an error and break out of the loop
-                    print("Token expired, please refresh the token and try again!")
-                    break
-                else:
-                    # Handle other potential errors
-                    print(f"Unexpected error during S3 put operation: {e}")
-                    break
+                print(f"Unexpected error during S3 put operation: {e}")
+                return "Failed to submit form", 500
 
-        file_names_string = ",".join(unique_file_names)
-        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id,supervisor_name) VALUES (%s, %s, %s, %s, %s,%s)"
-        
-        cursor = db_conn.cursor()
+            url = f"https://{custombucket}.s3.amazonaws.com/{unique_filename}"
+            files_url.append(url)
+            # Insert the file information into the file table
+        file_insert_sql = "INSERT INTO File (file_url, file_type) VALUES (%s, %s)"
         try:
-            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id,supervisor_name))
+            cursor.execute(file_insert_sql, (files_url, file.content_type))
             db_conn.commit()
         except Exception as e:
-            print(f"Error inserting into database: {e}")
+            print(f"Error inserting file into database: {e}")
             return "Failed to submit form", 500
-        finally:
-            cursor.close()
 
+        # Store the last inserted file_id
+        file_id = cursor.lastrowid
+
+        # After processing all files, insert a single row in the submit_form table
+        # Associated with the last file's file_id
+        if file_id:
+            form_insert_sql = """INSERT INTO submit_form 
+                (company_name, company_address, allowance, file_id, user_id,status,supervisor_id) 
+                VALUES (%s, %s, %s, %s, %s,%s, %s)"""
+            try:
+                cursor.execute(form_insert_sql, (company_name, company_address, allowance, file_id, user_id,"", supervisor_id))
+                db_conn.commit()
+            except Exception as e:
+                print(f"Error inserting form data into database: {e}")
+                return "Failed to submit form", 500
+
+        cursor.close()
+
+        # After updating the database, fetch the updated data
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT * FROM user WHERE user_role = 'Supervisor'")
+        supervisors = cursor.fetchall()
         print("submit_form Submitted Successfully")
-    
-    return render_template('SubmitInternshipForm.html')
+        cursor.close()
+
+    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
 
 @app.route('/submituser', methods=['POST'])
 def create_user():
