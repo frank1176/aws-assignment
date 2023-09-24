@@ -112,7 +112,7 @@ def SubmitForm():
         cursor = db_conn.cursor()
 
         # Assuming you have a table named 'supervisors' with columns 'id' and 'name'
-        cursor.execute('SELECT user_id, user_name FROM user WHERE user_role = "Supervisor"')
+        cursor.execute('SELECT supervisor_id, user_name FROM user WHERE user_role = "Supervisor"')
         supervisors = cursor.fetchall()
 
         # Close the database connection
@@ -140,13 +140,12 @@ def submit_form():
             return "Unauthorized", 403
 
         user_id = session['user_id']
-
         s3 = get_s3_resource()
 
         # Create a cursor to interact with the DB
         cursor = db_conn.cursor()
-        file_id = None
-        files_url=[]
+        files_url = []
+
         for file in uploaded_files:
             # Uploading file to S3
             unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
@@ -159,26 +158,26 @@ def submit_form():
 
             url = f"https://{custombucket}.s3.amazonaws.com/{unique_filename}"
             files_url.append(url)
-            # Insert the file information into the file table
+
+        files_url_str = ','.join(files_url)  # Concatenate all URLs into a single string
+
         file_insert_sql = "INSERT INTO File (file_url, file_type) VALUES (%s, %s)"
         try:
-            cursor.execute(file_insert_sql, (files_url, file.content_type))
+            # Assuming all files are of the same type, using file.content_type from the last file
+            cursor.execute(file_insert_sql, (files_url_str, file.content_type))
             db_conn.commit()
+            file_id = cursor.lastrowid
         except Exception as e:
             print(f"Error inserting file into database: {e}")
             return "Failed to submit form", 500
-
-        # Store the last inserted file_id
-        file_id = cursor.lastrowid
-
-        # After processing all files, insert a single row in the submit_form table
-        # Associated with the last file's file_id
+        print(file_id)
+        # After inserting into the File table, insert into the submit_form table
         if file_id:
             form_insert_sql = """INSERT INTO submit_form 
-                (company_name, company_address, allowance, file_id, user_id,status,supervisor_id) 
-                VALUES (%s, %s, %s, %s, %s,%s, %s)"""
+                (company_name, company_address, allowance,user_id,status, supervisor_id,file_id) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s)"""
             try:
-                cursor.execute(form_insert_sql, (company_name, company_address, allowance, file_id, user_id,"", supervisor_id))
+                cursor.execute(form_insert_sql, (company_name, company_address, allowance,  user_id,"pending", supervisor_id,file_id))
                 db_conn.commit()
             except Exception as e:
                 print(f"Error inserting form data into database: {e}")
@@ -190,10 +189,10 @@ def submit_form():
         cursor = db_conn.cursor()
         cursor.execute("SELECT * FROM user WHERE user_role = 'Supervisor'")
         supervisors = cursor.fetchall()
-        print("submit_form Submitted Successfully")
         cursor.close()
 
-    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
+        return render_template('SubmitInternshipForm.html', supervisors=supervisors)
+
 
 @app.route('/submituser', methods=['POST'])
 def create_user():
