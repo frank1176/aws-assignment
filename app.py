@@ -8,7 +8,7 @@ import uuid
 import botocore
 app = Flask(__name__,static_folder='static')
 
-app.secret_key = '/6jGyaxEtAdlmHe+n4Vnc3pBc91UauBts92Z6o/Y'
+app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
 
 bucket = custombucket
 region = customregion
@@ -52,10 +52,6 @@ def AddCompany():
 @app.route('/CreateUser', methods=['GET', 'POST'])
 def CreateUser():
     return render_template('CreateUser.html')
-
-@app.route('/CompanyListApprove', methods=['GET', 'POST'])
-def CompanyListApprove():
-    return render_template('CompanyList.html')
 
 @app.route('/Admin', methods=['GET'])
 def Admin():
@@ -118,25 +114,26 @@ def submit_form():
 
         # Store unique filenames
         unique_file_names = []
-        
 
+        s3 = get_s3_resource() 
+        
         for file in uploaded_files:
             # TODO: Add file type & size checks here
             unique_filename = str(uuid.uuid4())[:8] + '_' + secure_filename(file.filename)
-            s3 = get_s3_resource() 
             try:
-                # your code to put object in S3
+                # Put object in S3
                 s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
-
+                unique_file_names.append(unique_filename)
             except botocore.exceptions.ClientError as e:
                 if e.response['Error']['Code'] == 'ExpiredToken':
                     # Handle the expired token: refresh the token and retry the operation
-                    pass
+                    # For now, just print an error and break out of the loop
+                    print("Token expired, please refresh the token and try again!")
+                    break
                 else:
                     # Handle other potential errors
-                    print("Unexpected error: %s" % e)
-            s3.Bucket(custombucket).put_object(Key=unique_filename, Body=file)
-            unique_file_names.append(unique_filename)
+                    print(f"Unexpected error during S3 put operation: {e}")
+                    break
 
         file_names_string = ",".join(unique_file_names)
         insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id) VALUES (%s, %s, %s, %s, %s)"
@@ -192,11 +189,18 @@ def create_user():
 def company():
     try:
         if request.method == 'POST':
+
+              # Ensure user_id is in the session
+            if 'user_id' not in session:
+                return "Unauthorized", 403
+
+            user_id = session['user_id']
             company_name = request.form['company_name']
             company_address = request.form['company_address']
             company_website = request.form['company_website']
             company_phone = request.form['company_phone']
             contact_name = request.form['contact_name']
+            company_description = request.form['company_description']
             company_logo = request.files.getlist('company_logo[]')
 
             if not company_name or not company_address:
@@ -223,11 +227,11 @@ def company():
             file_urls_string = ",".join(unique_file_urls)
 
             # Modify the insert SQL to include the new column for file URLs
-            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_logo) VALUES (%s, %s, %s, %s, %s, %s)"
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
 
             cursor = db_conn.cursor()
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, file_urls_string))
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string, user_id))
                 print("Company information submitted successfully!")
                 db_conn.commit()
                 
@@ -252,15 +256,16 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_logo FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
-        return render_template('CompanyList.html', companies=companies)
+       
     except Exception as e:
         print("An error occurred while fetching company data.")
         print("Error:", str(e))
 
+    return render_template('CompanyList.html', companies=companies)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
