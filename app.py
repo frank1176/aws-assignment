@@ -8,7 +8,7 @@ import uuid
 import botocore
 app = Flask(__name__,static_folder='static')
 
-# app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
+app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
 
 bucket = custombucket
 region = customregion
@@ -179,6 +179,12 @@ def create_user():
 def company():
     try:
         if request.method == 'POST':
+
+              # Ensure user_id is in the session
+            if 'user_id' not in session:
+                return "Unauthorized", 403
+
+            user_id = session['user_id']
             company_name = request.form['company_name']
             company_address = request.form['company_address']
             company_website = request.form['company_website']
@@ -212,11 +218,11 @@ def company():
             file_urls_string = ",".join(unique_file_urls)
 
             # Modify the insert SQL to include the new column for file URLs
-            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
 
             cursor = db_conn.cursor()
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string))
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string, user_id))
                 print("Company information submitted successfully!")
                 db_conn.commit()
                 
