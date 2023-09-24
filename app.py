@@ -53,10 +53,6 @@ def AddCompany():
 def CreateUser():
     return render_template('CreateUser.html')
 
-@app.route('/CompanyListApprove', methods=['GET', 'POST'])
-def CompanyListApprove():
-    return render_template('CompanyList.html')
-
 @app.route('/Admin', methods=['GET'])
 def Admin():
     try:
@@ -175,6 +171,7 @@ def create_user():
     
     return render_template('CreateUser.html')
 
+
 # In your AddCompany route
 @app.route('/submit-company', methods=['POST'])
 def company():
@@ -185,11 +182,9 @@ def company():
             company_website = request.form['company_website']
             company_phone = request.form['company_phone']
             contact_name = request.form['contact_name']
+            company_description = request.form['company_description']
             company_logo = request.files.getlist('company_logo[]')
             
-            
-
-
 
             if not company_name or not company_address:
                 flash('Company Name and Address are required fields.', 'error')
@@ -215,11 +210,11 @@ def company():
             file_urls_string = ",".join(unique_file_urls)
 
             # Modify the insert SQL to include the new column for file URLs
-            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_logo) VALUES (%s, %s, %s, %s, %s, %s)"
+            insert_sql = "INSERT INTO company (company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
             cursor = db_conn.cursor()
             try:
-                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, file_urls_string))
+                cursor.execute(insert_sql, (company_name, company_address, company_website, company_phone, contact_name, company_description, file_urls_string))
                 print("Company information submitted successfully!")
                 db_conn.commit()
                 
@@ -244,15 +239,16 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_logo FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
-        return render_template('CompanyList.html', companies=companies)
+       
     except Exception as e:
         print("An error occurred while fetching company data.")
         print("Error:", str(e))
 
+    return render_template('CompanyList.html', companies=companies)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
