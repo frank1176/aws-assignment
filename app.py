@@ -53,6 +53,8 @@ def AddCompany():
 def CreateUser():
     return render_template('CreateUser.html')
 
+
+
 @app.route('/Admin', methods=['GET'])
 def Admin():
     try:
@@ -256,7 +258,7 @@ def CompanyList():
     try:
         # Fetch data from the database (you can replace this with your own query)
         cursor = db_conn.cursor()
-        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo FROM company")
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_status, company_logo, company_id FROM company")
         companies = cursor.fetchall()
         print(companies)  # Add this line for debugging
         cursor.close()
@@ -266,6 +268,29 @@ def CompanyList():
         print("Error:", str(e))
 
     return render_template('CompanyList.html', companies=companies)
+
+@app.route('/approval', methods=['POST'])
+def approval():
+    if request.method == 'POST':
+        company_id = request.form.get('company_id')
+
+        # Set company_status to "approve"
+        company_status = "approve"
+
+        try:
+            cursor = db_conn.cursor()
+            cursor.execute("UPDATE company SET company_status = %s WHERE company_id = %s", (company_status, company_id))
+            db_conn.commit()
+            cursor.close()
+        except Exception as e:
+            # Handle any database errors here, e.g., print the error message
+            print(f"Database error: {str(e)}")
+            db_conn.rollback()  # Rollback the transaction in case of an error
+
+        return redirect(url_for('CompanyList'))
+    return render_template('CompanyList.html')
+
+    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
