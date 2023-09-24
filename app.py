@@ -54,6 +54,10 @@ def AddCompany():
 def CreateUser():
     return render_template('CreateUser.html')
 
+@app.route('/Supervisor', methods=['GET', 'POST'])
+def Supervisor():
+    return render_template('Supervisor.html')
+
 
 
 @app.route('/Admin', methods=['GET'])
@@ -93,12 +97,15 @@ def userSignIn():
             if session['user_role'] == 'Admin':
                 print("admin")
                 return redirect(url_for('Admin'))
-            else:
+            elif session['user_role'] == 'Supervisor':
+                print("supervisor")
+                return redirect(url_for('Supervisor'))
+            elif session['user_role'] == 'Student':
                 print("user")
-                return redirect(url_for('Home'))
-        else:
-            flash('Email or password is invalid, please try again.', 'error')
-            return redirect(url_for('signin'))
+                return redirect(url_for('Home'))    
+            else:
+                flash('Email or password is invalid, please try again.', 'error')
+                return redirect(url_for('signin'))
 
 
 @app.route('/submitform', methods=['POST'])
@@ -313,6 +320,22 @@ def show_internship_list():
         print("Error:", str(e))
 
     return render_template('InternshipList.html', internships=internships)
+
+@app.route('/SupervisorInternshipList', methods=['GET'])
+def supervisor_internship_list():
+    try:
+        # Fetch data from the database (you can replace this with your own query)
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT * FROM submit_form")
+        internships = cursor.fetchall()
+        print(internships)  # Add this line for debugging
+        cursor.close()
+       
+    except Exception as e:
+        print("An error occurred while fetching company data.")
+        print("Error:", str(e))
+
+    return render_template('SupervisorInternshipList.html', internships=internships)
 
 @app.route('/internshipapproval', methods=['POST'])
 def internshipapproval():
