@@ -42,9 +42,6 @@ def Home():
 def About():
     return render_template('About.html')
 
-@app.route('/SubmitInternshipForm', methods=['GET', 'POST'])
-def SubmitForm():
-    return render_template('SubmitInternshipForm.html')
 
 @app.route('/AddCompany', methods=['GET', 'POST'])
 def AddCompany():
@@ -106,6 +103,26 @@ def userSignIn():
             else:
                 flash('Email or password is invalid, please try again.', 'error')
                 return redirect(url_for('signin'))
+
+@app.route('/SubmitInternshipForm', methods=['GET'])
+def SubmitForm():
+
+    try:
+       # Fetch data from the database (you can replace this with your own query)
+        cursor = db_conn.cursor()
+
+        # Assuming you have a table named 'supervisors' with columns 'id' and 'name'
+        cursor.execute('SELECT user_id, user_name FROM user WHERE user_role = "Supervisor"')
+        supervisors = cursor.fetchall()
+
+        # Close the database connection
+        cursor.close()
+    except Exception as e:
+        print("An error occurred while fetching supervisor data.")
+        print("Error:", str(e))
+        supervisors = []  # Empty list in case of an error
+
+    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
 
 
 @app.route('/submitform', methods=['POST'])
