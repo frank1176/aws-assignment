@@ -42,6 +42,10 @@ def Home():
 def About():
     return render_template('About.html')
 
+@app.route('/SubmitInternshipForm', methods=['GET', 'POST'])
+def SubmitForm():
+    return render_template('SubmitInternshipForm.html')
+
 @app.route('/AddCompany', methods=['GET', 'POST'])
 def AddCompany():
     return render_template('AddCompany.html')
@@ -103,26 +107,6 @@ def userSignIn():
                 flash('Email or password is invalid, please try again.', 'error')
                 return redirect(url_for('signin'))
 
-@app.route('/SubmitInternshipForm', methods=['GET'])
-def SubmitForm():
-    try:
-        # Connect to your database (replace 'your_database.db' with your actual database file)
-        cursor = db_conn.cursor()
-
-        # Assuming you have a table named 'supervisors' with columns 'id' and 'name'
-        cursor.execute('SELECT user_id, user_name, user_role FROM user WHERE user_role = "Supervisor"')
-        supervisors = cursor.fetchall()
-        print(supervisors)  # Add this line for debugging
-
-        # Close the database connection
-        cursor.close()
-    except Exception as e:
-        print("An error occurred while fetching supervisor data.")
-        print("Error:", str(e))
-        supervisors = []  # Empty list in case of an error
-
-    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
-
 
 @app.route('/submitform', methods=['POST'])
 def submit_form():
@@ -131,8 +115,7 @@ def submit_form():
         company_address = request.form['company_address']
         allowance = request.form['allowance']
         uploaded_files = request.files.getlist('files[]')
-        supervisor_id = request.form.get('supervisor')
-        print(supervisor_id)
+        supervisor_name=request.form['supervisor_name']
         # Ensure user_id is in the session
         if 'user_id' not in session:
             return "Unauthorized", 403
@@ -163,11 +146,11 @@ def submit_form():
                     break
 
         file_names_string = ",".join(unique_file_names)
-        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id, supervisor_id) VALUES (%s, %s, %s, %s, %s,%s)"
+        insert_sql = "INSERT INTO submit_form (company_name, company_address, allowance, file_names, user_id,supervisor_name) VALUES (%s, %s, %s, %s, %s,%s)"
         
         cursor = db_conn.cursor()
         try:
-            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id, supervisor_id))
+            cursor.execute(insert_sql, (company_name, company_address, allowance, file_names_string, user_id,supervisor_name))
             db_conn.commit()
         except Exception as e:
             print(f"Error inserting into database: {e}")
@@ -175,13 +158,9 @@ def submit_form():
         finally:
             cursor.close()
 
-         # After updating the database, fetch the updated data
-        cursor = db_conn.cursor()
-        cursor.execute("SELECT * FROM user")
-        supervisors = cursor.fetchall()
         print("submit_form Submitted Successfully")
     
-    return render_template('SubmitInternshipForm.html', supervisors=supervisors)
+    return render_template('SubmitInternshipForm.html')
 
 @app.route('/submituser', methods=['POST'])
 def create_user():
@@ -194,25 +173,38 @@ def create_user():
     cursor = db_conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM user WHERE user_email = %s", (email,))
     email_exists = cursor.fetchone()[0]
-    cursor.close()
     
     if email_exists:
         flash('Email already exists, please use another email.', 'error')
     else:
         # Email doesn't exist, insert the new user
         insert_sql = "INSERT INTO user (user_name, user_password, user_email, user_role) VALUES (%s, %s, %s, %s)"
-        cursor = db_conn.cursor()
-        try:
-            cursor.execute(insert_sql, (name, password, email, role))
+        cursor.execute(insert_sql, (name, password, email, role))
+        db_conn.commit()
+        print(role)
+        flash('User successfully created.', 'success')
+        
+        # Check if the role is "supervisor" and insert into the supervisor table
+        if role == "Supervisor":
+            user_id = cursor.lastrowid  # Get the auto-incremented user ID
+            print(user_id)
+            insert_supervisor_sql = "INSERT INTO supervisor (user_id) VALUES (%s)"
+            cursor.execute(insert_supervisor_sql, (user_id))
             db_conn.commit()
-            flash('User successfully created.', 'success')
-        except Exception as e:
-            db_conn.rollback()
-            flash(f'Error creating user: {str(e)}', 'error')
-        finally:
-            cursor.close()
+
+             # Retrieve the supervisor_id from the supervisor table
+            cursor.execute("SELECT supervisor_id FROM supervisor WHERE user_id = %s", (user_id,))
+            supervisor_id = cursor.fetchone()[0]
+            
+            # Update the user table with the supervisor_id
+            update_user_sql = "UPDATE user SET supervisor_id = %s WHERE user_id = %s"
+            cursor.execute(update_user_sql, (supervisor_id, user_id))
+            db_conn.commit()
+
+    cursor.close()
 
     return render_template('CreateUser.html')
+
 
 
 # In your AddCompany route
