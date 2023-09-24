@@ -9,7 +9,7 @@ import botocore
 app = Flask(__name__,static_folder='static')
 app.secret_key = os.urandom(24)
 
-app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
+# app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
 
 bucket = custombucket
 region = customregion
@@ -350,6 +350,21 @@ def internshipapproval():
         # Pass the updated data to the template
         return render_template('InternshipList.html', internships=internships)
 
+@app.route('/CompanyListView', methods=['GET', 'POST'])
+def CompanyListView():
+    try:
+        # Fetch data from the database
+        cursor = db_conn.cursor()
+        cursor.execute("SELECT company_name, company_address, company_website, company_phone, contact_name, company_description, company_logo, company_id FROM company WHERE company_status = 'approved'")
+        companies = cursor.fetchall()
+        cursor.close()
+       
+    except Exception as e:
+        print("An error occurred while fetching company data.")
+        print("Error:", str(e))
+        companies = []  # Set companies to an empty list in case of an error
+
+    return render_template('CompanyListView.html', companies=companies)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

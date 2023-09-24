@@ -2,15 +2,24 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITP Online</title>
+    <title>Company List</title>
 
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/home.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.css" rel="stylesheet" />
+    <style>
+        .card {
+            border-radius: .5rem;
+        }
+
+        .mask-custom {
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            background-clip: padding-box;
+            box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-gray-100 p-10">
     <header>
         <nav class="bg-white border-gray-200 dark:bg-gray-900 nav-borderline">
             <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -33,7 +42,7 @@
                         class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
                         <li>
                             <a href="{{ url_for('Home') }}"
-                                class="block py-2 pl-3 pr-4 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500"
+                                class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                 aria-current="page">Home</a>
                         </li>
                         <li>
@@ -45,8 +54,8 @@
                                 class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Register Company</a>
                         </li>
                         <li>
-                            <a href="{{ url_for('CompanyListView') }}"
-                                class="block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Company List</a>
+                            <a href="{{ url_for('CompanyList') }}"
+                            class="block py-2 pl-3 pr-4 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500">Company List</a>
                         </li>
                         <li>
                             <a href="{{ url_for('SubmitForm') }}"
@@ -66,37 +75,57 @@
         </nav>
     </header>
 
-    <div class="home-header">
-        <h1 class="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"><span
-                class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">BAIT305C/AMIT3205</span>
-            Industrial Training Programme</h1>
-        <p class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Industrial Training is a compulsory
-            programme that open doors for internship essentials. The programme focuses on student internship attachment,
-            as evidence of work capabilities such as expanding professional network, social values, work quality and
-            ethics.</p>
-        <div class="home-button">
-            <button type="button"
-                class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Find
-                More</button>
+  
+<!-- Main content with responsive classes -->
+<h1 class="text-black text-4xl text-center py-8">Company List</h1>
+<div class="mask-custom flex items-center h-full">
+    <div class="container mx-auto">
+        <div class="sm:flex justify-center"> <!-- Responsive class for small screens -->
+            <div class="w-full sm:w-3/4 lg:w-2/3">
+                <div class="bg-white shadow-md p-8">
+                    <div class="overflow-x-auto">
+                        <!-- Wrap the table with a responsive div -->
+                        <div class="min-w-full overflow-x-auto">
+                            <table class="min-w-full border border-gray-200">
+                                <!-- Table content -->
+                                <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 bg-gray-100">Company Name</th>
+                                        <th class="px-6 py-3 bg-gray-100">Company Address</th>
+                                        <th class="px-6 py-3 bg-gray-100">Company Website</th>
+                                        <th class="px-6 py-3 bg-gray-100">Company Phone</th>
+                                        <th class="px-6 py-3 bg-gray-100">Contact Name</th>
+                                        <th class="px-6 py-3 bg-gray-100">Company Description</th>
+                                        <th class="px-6 py-3 bg-gray-100">Company Logo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for company in companies %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[0] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[1] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[2] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[3] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[4] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">{{ company[5] }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <img src="{{ company[6] }}" alt="Company Logo" width="100" height="100">
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- End of responsive div -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="about-container">
-        <div class="about-text-container">
-            <p class="text-4xl font-black text-gray-900 dark:text-white about-text-title">TARUMT ITP</p>
-            <p class="text-left text-gray-500 dark:text-gray-400">Industrial Training is a compulsory program
-                that serves as a bridge to vital internship opportunities. It emphasizes practical experience, enabling
-                students to apply their academic knowledge, expand their professional networks, and cultivate essential
-                qualities like work ethics and social values. Through exposure to real-world work environments, students
-                develop skills, gain insights from experienced mentors, and learn to maintain high standards of work
-                quality. This program not only enhances their career prospects but also nurtures their personal and
-                professional growth, making it a crucial component of their education.</p>
-        </div>
-        <div class="about-image-container">
-            <img src="{{ url_for('static', filename='image/about-img.jpg') }}" class="about-img" alt="AboutUs">
-        </div>
-    </div>
 
+  
 </body>
 
 </html>
