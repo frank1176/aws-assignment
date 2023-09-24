@@ -7,6 +7,7 @@ from config import *
 import uuid
 import botocore
 app = Flask(__name__,static_folder='static')
+app.secret_key = os.environ.get('SECRET_KEY')
 
 # app.secret_key = 'pI9mFaoOhNaC/24tqBLbp+xbVXGAtx4wNE5W1tvw'
 
