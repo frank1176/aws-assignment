@@ -95,9 +95,9 @@ def userSignIn():
             elif session['user_role'] == 'Student':
                 print("user")
                 return redirect(url_for('Home'))    
-            else:
-                flash('Email or password is invalid, please try again.', 'error')
-                return redirect(url_for('signin'))
+        else:
+            flash('Email or password is invalid, please try again.', 'error')
+            return redirect(url_for('signin'))
 
 @app.route('/SubmitInternshipForm', methods=['GET'])
 def SubmitForm():
